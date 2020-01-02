@@ -37,6 +37,11 @@ Game >> askUserForPoint [
 ]
 
 { #category : #accessing }
+Game >> at: aPoint [
+	^ board at: aPoint x at: aPoint y
+]
+
+{ #category : #accessing }
 Game >> board [
 	^ board
 ]
@@ -83,11 +88,12 @@ Game >> getNumberOfCapturesAtRow: aRow col: aCol [
 	n := 0.
 	origin := Point x: aRow y: aCol.
 	(self getSupportingAlliesAtRow: aRow col: aCol)
-		do: [ :each | 
-			(self getPiecesFrom: origin to: each)
-				do: [ :piece | 
-					piece = self enemy
-						ifTrue: [ n := n + 1 ] ] ]. ^ n
+				do: [ :each | 
+					(self isUnbroken: (self getPiecesFrom: origin to: each)) ifTrue: 
+						[ (self getPiecesFrom: origin to: each) do: [ :piece | 
+							piece = self enemy
+								ifTrue: [ n := n + 1 ] ] ] ].
+	^ n
 ]
 
 { #category : #accessing }
@@ -164,6 +170,21 @@ Game >> hasNeighboringEnemyAtRow: aRow col: aCol [
 { #category : #testing }
 Game >> isOccupiedAtRow: aRow col: aCol [
 	^ ((self row: aRow col: aCol) = $0) not
+]
+
+{ #category : #accessing }
+Game >> isUnbroken: aCollection [
+	aCollection removeAt: 1.
+	Transcript show: aCollection.
+	aCollection
+		do: [ :piece | 
+			Transcript
+				show: 'SELF AT';
+				show: piece;
+				cr.
+			(piece = turn or: [ piece = enemy ])
+				ifFalse: [ ^ false ] ].
+	^ true
 ]
 
 { #category : #mutating }
