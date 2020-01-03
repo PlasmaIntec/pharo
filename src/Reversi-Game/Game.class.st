@@ -30,7 +30,6 @@ Game >> askUserForPoint [
 		request: 'Enter Point (You are ' , self turn asString , '), e.g. A1'.
 	res = 'q'
 		ifTrue: [ ^ false ].
-	Transcript show: (res at: 2) class.
 	x := (res at: 1) asInteger - 64.
 	y := (res at: 2) asInteger - 48.
 	^ Point x: x y: y
@@ -51,7 +50,7 @@ Game >> canPlaceAtRow: aRow col: aCol [
 	^ {(self isOccupiedAtRow: aRow col: aCol) not.
 	(self hasNeighboringEnemyAtRow: aRow col: aCol).
 	(self hasAllySupportingAtRow: aRow col: aCol).
-	((self getNumberOfCapturesAtRow: aRow col: aCol) = 0) not}
+	((self getNumberOfCapturesAtRow: aRow col: aCol) ~= 0)}
 		reduceLeft: [ :a :b | a and: [ b ] ]
 ]
 
@@ -102,11 +101,8 @@ Game >> getNumberOfLiveCells [
 	n := 0.
 	self
 		withLiveCellsDo: [ :i :row :col | 
-			n := n + 1.
-			Transcript
-				show: row asString , col asString;
-				cr ].
-			^ n
+			n := n + 1. ].
+	^ n
 ]
 
 { #category : #accessing }
@@ -169,22 +165,14 @@ Game >> hasNeighboringEnemyAtRow: aRow col: aCol [
 
 { #category : #testing }
 Game >> isOccupiedAtRow: aRow col: aCol [
-	^ ((self row: aRow col: aCol) = $0) not
+	^ (self row: aRow col: aCol) ~= $0
 ]
 
 { #category : #accessing }
 Game >> isUnbroken: aCollection [
 	aCollection removeAt: 1.
-	Transcript show: aCollection.
-	aCollection
-		do: [ :piece | 
-			Transcript
-				show: 'SELF AT';
-				show: piece;
-				cr.
-			(piece = turn or: [ piece = enemy ])
-				ifFalse: [ ^ false ] ].
-	^ true
+	^ aCollection
+		allSatisfy: [ :piece | piece = turn or: [ piece = enemy ] ]
 ]
 
 { #category : #mutating }
@@ -311,10 +299,8 @@ Game >> turn [
 
 { #category : #mutating }
 Game >> withLiveCellsDo: aBlock [
-	| n |
-	n := 0.
 	self board
 		withIndicesDo: [ :i :row :col | 
 			(self canPlaceAtRow: row col: col)
-				ifTrue: [ (aBlock value: i value: row value: col) ] ]
+				ifTrue: [ aBlock value: i value: row value: col ] ]
 ]

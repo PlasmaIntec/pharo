@@ -22,12 +22,10 @@ GameBoard >> createBoard [
 			(1 to: game board numberOfColumns)
 				do: [ :c | 
 					aCell := ButtonCell new.
+					aCell label: (r + 64) asCharacter asString , c printString.
+					aCell extent: 50 @ 50.
 					aCell row: r col: c.
 					aCell board: self.
-					(game board at: r at: c) = $W
-						ifTrue: [ aCell pieceColor: Color white ].
-					(game board at: r at: c) = $B
-						ifTrue: [ aCell pieceColor: Color black ].
 					rowMorph addMorphBack: aCell ].
 			container addMorphBack: rowMorph ]
 ]
@@ -66,7 +64,7 @@ GameBoard >> update [
 			(1 to: game board numberOfColumns)
 				do: [ :c | 
 					(game row: r col: c) = $W
-						ifTrue: [ self updateBoardAtRow: r col: c color: Color white ].
+						ifTrue: [ self updateBoardAtRow: r col: c color: Color blue ].
 					(game row: r col: c) = $B
 						ifTrue: [ self updateBoardAtRow: r col: c color: Color black ] ] ]
 ]
@@ -76,22 +74,19 @@ GameBoard >> updateBoardAtRow: aRow col: aCol color: aColor [
 	((container submorphs at: aRow) submorphs at: aCol) pieceColor: aColor
 ]
 
-{ #category : #'as yet unclassified' }
+{ #category : #accessing }
 GameBoard >> userClickRow: aRow col: aCol [
 	(self game canPlaceAtRow: aRow col: aCol)
-		ifTrue: [ self game placeAtRow: aRow col: aCol.
-			self game show.
-			self update.
-			self game ai = 'off'
-				ifTrue: [ self game swapTurn ].
-			self game ai = 'joker'
-				ifTrue: [ self game swapTurn.
-					self game jokerTurn.
-					self game swapTurn ].
-			self update.
-			container changed ]
-		ifFalse: [ Transcript
-				show:
-					'Cannot place ' , self game turn asString, ' at row: ' , aRow asString
-						, ' at col: ' , aCol asString ]
+		ifFalse: [ ^ self ].
+	self game placeAtRow: aRow col: aCol.
+	self game show.
+	self update.
+	self game ai = 'off'
+		ifTrue: [ self game swapTurn ].
+	self game ai = 'joker'
+		ifTrue: [ self game swapTurn.
+			self game jokerTurn.
+			self game swapTurn ].
+	self update.
+	container changed
 ]

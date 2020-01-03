@@ -39,9 +39,7 @@ ButtonCell >> initialize [
 
 { #category : #action }
 ButtonCell >> onClickExecutionBlock [
-	^ [ Transcript
-		show: 'Row: ' , row asString , ' Col: ' , col asString;
-		cr.
+	^ [ 
 	controller userClickRow: row col: col ]
 ]
 
