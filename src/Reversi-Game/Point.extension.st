@@ -29,6 +29,24 @@ Point >> directionTo: aPoint [
 ]
 
 { #category : #'*Reversi-Game' }
+Point class >> from: aString [
+	| nx ny |
+	[ nx := (aString at: 1) asInteger - 64.
+	ny := (aString at: 2) asInteger - 48.
+	{(nx < 1).
+	(nx > 8).
+	(ny < 1).
+	(ny > 8)}
+		reduce: [ :a :b | 
+			b
+				ifTrue: [ self error ] ].
+	^ self x: nx y: ny ]
+		on: Error
+		do: [ 
+			^ false ]
+]
+
+{ #category : #'*Reversi-Game' }
 Point >> to: destinationPoint by: directionPoint [
 	| c a b |
 	c := OrderedCollection new.
