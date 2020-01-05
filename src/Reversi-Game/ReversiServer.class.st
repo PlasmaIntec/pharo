@@ -39,12 +39,11 @@ ReversiServer >> interactUsing: aSocket [
 	[ stream := SocketStream on: aSocket.
 	receivedData := stream upTo: $!.
 	aPoint := Point from: receivedData asByteArray asString trim.
-	Transcript
-		show: aPoint asString;
-		cr.
 	gameBoard onlineEnemyClickRow: aPoint x col: aPoint y ]
 		on: Error
-		do: [ :ex | Transcript show: ex. aSocket closeAndDestroy.
+		do: [ :ex | 
+			ex crTrace.
+			aSocket closeAndDestroy.
 			stream close ]
 ]
 
@@ -64,9 +63,6 @@ ReversiServer >> placeAtRow: aRow col: aCol [
 	aStream := SocketStream
 		openConnectionToHostNamed: 'localhost'
 		port: otherPort.
-	Transcript
-		show: 'Send to other server: ' , (String fromRow: aRow col: aCol) , '!';
-		cr.
 	aStream sendCommand: (String fromRow: aRow col: aCol) , '!'
 ]
 

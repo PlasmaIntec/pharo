@@ -75,14 +75,11 @@ GameBoard >> offlineUserClickRow: aRow col: aCol [
 
 { #category : #'as yet unclassified' }
 GameBoard >> onlineEnemyClickRow: aRow col: aCol [
-	| enemyPoint |
-	Transcript
-		show: 'Enemy clicked row: ' , aRow printString , ' col: ' , aCol printString.
 	isYourTurn
 		ifTrue: [ ^ self ].
 	(self game canPlaceAtRow: aRow col: aCol)
 		ifFalse: [ ^ self ].
-		self yourTurn: true.
+	self yourTurn: true.
 	self game placeAtRow: aRow col: aCol.
 	self game show.
 	self game swapTurn.
