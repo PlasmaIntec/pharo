@@ -97,8 +97,7 @@ ReversiServer >> start [
 	isClient := true.
 	otherPort := 9999.
 	gameBoard goOnlineWithServer: self.
-	gameBoard game swapTurn.
-	gameBoard yourTurn: false.
+	gameBoard yourTurn: false
 ]
 
 { #category : #'as yet unclassified' }
