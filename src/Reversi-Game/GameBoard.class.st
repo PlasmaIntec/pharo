@@ -75,16 +75,17 @@ GameBoard >> offlineUserClickRow: aRow col: aCol [
 
 { #category : #'as yet unclassified' }
 GameBoard >> onlineEnemyClickRow: aRow col: aCol [
-
 	| enemyPoint |
+	Transcript
+		show: 'Enemy clicked row: ' , aRow printString , ' col: ' , aCol printString.
 	isYourTurn
 		ifTrue: [ ^ self ].
 	(self game canPlaceAtRow: aRow col: aCol)
 		ifFalse: [ ^ self ].
+		self yourTurn: true.
 	self game placeAtRow: aRow col: aCol.
 	self game show.
 	self game swapTurn.
-	isYourTurn := true.
 	self update.
 	container changed
 ]
@@ -95,11 +96,11 @@ GameBoard >> onlineUserClickRow: aRow col: aCol [
 		ifFalse: [ ^ self ].
 	(self game canPlaceAtRow: aRow col: aCol)
 		ifFalse: [ ^ self ].
-	[server placeAtRow: aRow col: aCol.]fork.
+	[ server placeAtRow: aRow col: aCol ] fork.
+	self yourTurn: false.
 	self game placeAtRow: aRow col: aCol.
 	self game show.
 	self game swapTurn.
-	isYourTurn := false.
 	self update.
 	container changed
 ]
@@ -138,4 +139,9 @@ GameBoard >> userClickRow: aRow col: aCol [
 	isOnline
 		ifTrue: [ self onlineUserClickRow: aRow col: aCol ]
 		ifFalse: [ self offlineUserClickRow: aRow col: aCol ]
+]
+
+{ #category : #'as yet unclassified' }
+GameBoard >> yourTurn: aBoolean [ 
+isYourTurn := aBoolean
 ]

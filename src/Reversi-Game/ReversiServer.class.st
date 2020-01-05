@@ -22,7 +22,6 @@ ReversiServer >> initialize [
 	isRunningLock := Mutex new.
 	self isRunning: false.
 	gameBoard := GameBoard new update open.
-	gameBoard goOnlineWithServer: self
 ]
 
 { #category : #'as yet unclassified' }
@@ -37,12 +36,16 @@ ReversiServer >> interactOnConnection [
 { #category : #'as yet unclassified' }
 ReversiServer >> interactUsing: aSocket [
 	| receivedData stream aPoint |
-	stream := SocketStream on: aSocket.receivedData := stream upTo: $!.
-			aPoint := Point from: receivedData asByteArray asString trim.
-			Transcript
-				show: aPoint asString;
-				cr.
-			gameBoard onlineEnemyClickRow: aPoint x col: aPoint y
+	[ stream := SocketStream on: aSocket.
+	receivedData := stream upTo: $!.
+	aPoint := Point from: receivedData asByteArray asString trim.
+	Transcript
+		show: aPoint asString;
+		cr.
+	gameBoard onlineEnemyClickRow: aPoint x col: aPoint y ]
+		on: Error
+		do: [ :ex | Transcript show: ex. aSocket closeAndDestroy.
+			stream close ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -57,9 +60,13 @@ ReversiServer >> isRunning: aBoolean [
 
 { #category : #mutating }
 ReversiServer >> placeAtRow: aRow col: aCol [
-	| aSocket aStream |
-	aSocket := SocketStream openConnectionToHostNamed: 'localhost' port: otherPort.
-	aStream := SocketStream on: aSocket.
+	| aStream |
+	aStream := SocketStream
+		openConnectionToHostNamed: 'localhost'
+		port: otherPort.
+	Transcript
+		show: 'Send to other server: ' , (String fromRow: aRow col: aCol) , '!';
+		cr.
 	aStream sendCommand: (String fromRow: aRow col: aCol) , '!'
 ]
 
@@ -81,13 +88,17 @@ ReversiServer >> start [
 		connectToHostNamed: 'localhost'
 		port: 9999 ]
 		on: Error
-		do: [ self usePort: 9998.
-			isClient := true.
-			otherPort := 9999.
+		do: [ self usePort: 9999.
+			isClient := false.
+			otherPort := 9998.
+			gameBoard goOnlineWithServer: self.
 			^ self ].
-	self usePort: 9999.
-	isClient := false.
-	otherPort := 9998
+	self usePort: 9998.
+	isClient := true.
+	otherPort := 9999.
+	gameBoard goOnlineWithServer: self.
+	gameBoard game swapTurn.
+	gameBoard yourTurn: false.
 ]
 
 { #category : #'as yet unclassified' }
@@ -98,6 +109,6 @@ ReversiServer >> stop [
 { #category : #'as yet unclassified' }
 ReversiServer >> usePort: aNumber [
 	ownPort := aNumber.
-	connectionSocket listenOn: aNumber backlogSize: 10.
+	connectionSocket := Socket newTCP listenOn: aNumber backlogSize: 10.
 	[ self serve ] fork
 ]
