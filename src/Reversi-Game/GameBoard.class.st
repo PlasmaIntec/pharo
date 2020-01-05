@@ -3,7 +3,10 @@ Class {
 	#superclass : #Morph,
 	#instVars : [
 		'container',
-		'game'
+		'game',
+		'isOnline',
+		'isYourTurn',
+		'server'
 	],
 	#category : #'Reversi-Game'
 }
@@ -35,14 +38,70 @@ GameBoard >> game [
 	^ game
 ]
 
+{ #category : #accessing }
+GameBoard >> goOnlineWithServer: aServer [.
+	isOnline := true.
+	server := aServer.
+]
+
 { #category : #initialization }
 GameBoard >> initialize [
 	container := Morph new
 		layoutPolicy: TableLayout new;
 		color: Color transparent.
 	game := Game new.
+	isOnline := false.
+	isYourTurn := true.
 	self createBoard.
 	^ self
+]
+
+{ #category : #'as yet unclassified' }
+GameBoard >> offlineUserClickRow: aRow col: aCol [
+	(self game canPlaceAtRow: aRow col: aCol)
+		ifFalse: [ ^ self ].
+	self game placeAtRow: aRow col: aCol.
+	self game show.
+	self update.
+	self game ai = 'off'
+		ifTrue: [ self game swapTurn ].
+	self game ai = 'joker'
+		ifTrue: [ self game swapTurn.
+			self game jokerTurn.
+			self game swapTurn ].
+	self update.
+	container changed
+]
+
+{ #category : #'as yet unclassified' }
+GameBoard >> onlineEnemyClickRow: aRow col: aCol [
+
+	| enemyPoint |
+	isYourTurn
+		ifTrue: [ ^ self ].
+	(self game canPlaceAtRow: aRow col: aCol)
+		ifFalse: [ ^ self ].
+	self game placeAtRow: aRow col: aCol.
+	self game show.
+	self game swapTurn.
+	isYourTurn := true.
+	self update.
+	container changed
+]
+
+{ #category : #'as yet unclassified' }
+GameBoard >> onlineUserClickRow: aRow col: aCol [
+	isYourTurn
+		ifFalse: [ ^ self ].
+	(self game canPlaceAtRow: aRow col: aCol)
+		ifFalse: [ ^ self ].
+	[server placeAtRow: aRow col: aCol.]fork.
+	self game placeAtRow: aRow col: aCol.
+	self game show.
+	self game swapTurn.
+	isYourTurn := false.
+	self update.
+	container changed
 ]
 
 { #category : #'instance creation' }
@@ -76,17 +135,7 @@ GameBoard >> updateBoardAtRow: aRow col: aCol color: aColor [
 
 { #category : #accessing }
 GameBoard >> userClickRow: aRow col: aCol [
-	(self game canPlaceAtRow: aRow col: aCol)
-		ifFalse: [ ^ self ].
-	self game placeAtRow: aRow col: aCol.
-	self game show.
-	self update.
-	self game ai = 'off'
-		ifTrue: [ self game swapTurn ].
-	self game ai = 'joker'
-		ifTrue: [ self game swapTurn.
-			self game jokerTurn.
-			self game swapTurn ].
-	self update.
-	container changed
+	isOnline
+		ifTrue: [ self onlineUserClickRow: aRow col: aCol ]
+		ifFalse: [ self offlineUserClickRow: aRow col: aCol ]
 ]
